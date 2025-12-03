@@ -1,14 +1,8 @@
 import './App.css'
+import AuthPage from './pages/AuthPage'
 
 function App() {
-  return (
-    <main className="app">
-      <h1>Live Quiz</h1>
-      <p className="subtitle">
-        Frontend scaffold is ready. Start building your UI here.
-      </p>
-    </main>
-  )
+  return <AuthPage />
 }
 
 export default App

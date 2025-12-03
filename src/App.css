@@ -1,21 +1,114 @@
-.app {
+.auth-page {
   min-height: 100vh;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
-  padding: 2.5rem 1.5rem;
+  padding: 2rem 1rem;
 }
 
-.app h1 {
-  margin: 0;
-  font-size: 2.75rem;
-  letter-spacing: -0.02em;
+.auth-card {
+  width: min(420px, 90vw);
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.12);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
 }
 
-.subtitle {
+.auth-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.auth-title {
   margin: 0;
-  color: #4b5563;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.auth-toggle {
+  font-size: 0.9rem;
+  color: #2563eb;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  font-weight: 600;
+  padding: 0;
+}
+
+.auth-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.auth-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.95rem;
+  color: #475569;
+}
+
+.auth-input {
+  padding: 0.85rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
   font-size: 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.auth-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+.auth-error {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecdd3;
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  font-size: 0.95rem;
+}
+
+.auth-button {
+  margin-top: 0.5rem;
+  width: 100%;
+  padding: 0.95rem;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  box-shadow: 0 12px 30px rgba(37, 99, 235, 0.25);
+}
+
+.auth-button:hover {
+  filter: brightness(1.05);
+  box-shadow: 0 16px 36px rgba(37, 99, 235, 0.35);
+}
+
+.auth-button:active {
+  transform: translateY(1px);
+}
+
+.auth-meta {
+  text-align: center;
+  font-size: 0.95rem;
+  color: #475569;
+}
+
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 1.5rem;
+  }
 }
