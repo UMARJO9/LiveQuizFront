@@ -4,6 +4,9 @@
   align-items: center;
   justify-content: center;
   padding: 2rem 1rem;
+  background: radial-gradient(circle at 20% 20%, #e0f2ff 0%, #d0e4ff 35%, transparent 55%),
+    radial-gradient(circle at 80% 0%, #c7d2fe 0%, #c4d2ff 30%, transparent 55%),
+    linear-gradient(135deg, #d9e6ff 0%, #c7d2fe 50%, #b6c6ff 100%);
 }
 
 .auth-card {
@@ -197,4 +200,18 @@
 
 .logout-button:active {
   transform: translateY(1px);
+}
+
+.logout-button {
+  width: 120px;
+  text-align: center;
+  justify-self: center;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  border-color: #1d4ed8;
+  box-shadow: 0 10px 24px rgba(59, 130, 246, 0.25);
+}
+
+.logout-button:hover {
+  border-color: #1e40af;
+  box-shadow: 0 14px 28px rgba(59, 130, 246, 0.35);
 }

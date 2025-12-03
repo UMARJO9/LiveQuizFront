@@ -1,15 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { request } from '../api/request'
 import '../App.css'
-
-const initialRegisterState = {
-  email: '',
-  password: '',
-  password2: '',
-  first_name: '',
-  last_name: '',
-  specialty: '',
-}
 
 const initialLoginState = {
   email: '',
@@ -39,22 +30,12 @@ const flattenFieldErrors = (fields) => {
 }
 
 const AuthPage = ({ onAuth }) => {
-  const [mode, setMode] = useState('login')
   const [form, setForm] = useState(initialLoginState)
   const [errorMessage, setErrorMessage] = useState('')
   const [fieldErrors, setFieldErrors] = useState({})
   const [loading, setLoading] = useState(false)
 
-  const title = mode === 'login' ? 'Войти' : 'Регистрация'
-  const toggleText =
-    mode === 'login' ? 'У меня нет аккаунта' : 'У меня есть аккаунт'
-
-  const handleToggle = () => {
-    setMode((prev) => (prev === 'login' ? 'register' : 'login'))
-    setForm(mode === 'login' ? initialRegisterState : initialLoginState)
-    setErrorMessage('')
-    setFieldErrors({})
-  }
+  const title = 'Войти'
 
   const onChange = (e) => {
     const { name, value } = e.target
@@ -68,8 +49,7 @@ const AuthPage = ({ onAuth }) => {
     setLoading(true)
 
     const payload = { ...form }
-    const url = mode === 'login' ? '/api/login' : '/api/register'
-    const result = await request('post', url, payload)
+    const result = await request('post', '/auth/login', payload)
 
     if (result && !result.fields) {
       saveSession(result)
@@ -83,70 +63,11 @@ const AuthPage = ({ onAuth }) => {
     setLoading(false)
   }
 
-  const registerFields = useMemo(
-    () => (
-      <>
-        <label className="auth-label">
-          Имя
-          <input
-            className="auth-input"
-            type="text"
-            name="first_name"
-            value={form.first_name}
-            onChange={onChange}
-            placeholder="Ваше имя"
-            required
-          />
-        </label>
-        <label className="auth-label">
-          Фамилия
-          <input
-            className="auth-input"
-            type="text"
-            name="last_name"
-            value={form.last_name}
-            onChange={onChange}
-            placeholder="Ваша фамилия"
-            required
-          />
-        </label>
-        <label className="auth-label">
-          Специализация
-          <input
-            className="auth-input"
-            type="text"
-            name="specialty"
-            value={form.specialty}
-            onChange={onChange}
-            placeholder="Например: Backend, Frontend..."
-            required
-          />
-        </label>
-        <label className="auth-label">
-          Подтвердите пароль
-          <input
-            className="auth-input"
-            type="password"
-            name="password2"
-            value={form.password2}
-            onChange={onChange}
-            placeholder="Пароль еще раз"
-            required
-          />
-        </label>
-      </>
-    ),
-    [form.first_name, form.last_name, form.specialty, form.password2],
-  )
-
   return (
     <div className="auth-page">
       <form className="auth-card" onSubmit={handleSubmit}>
         <div className="auth-header">
           <h1 className="auth-title">{title}</h1>
-          <button type="button" className="auth-toggle" onClick={handleToggle}>
-            {toggleText}
-          </button>
         </div>
 
         {errorMessage && <div className="auth-error">{errorMessage}</div>}
@@ -186,22 +107,11 @@ const AuthPage = ({ onAuth }) => {
               required
             />
           </label>
-
-          {mode === 'register' && registerFields}
         </div>
 
         <button className="auth-button" type="submit" disabled={loading}>
           {loading ? 'Загрузка...' : title}
         </button>
-
-        <div className="auth-meta">
-          {mode === 'login'
-            ? 'Впервые здесь?'
-            : 'Уже есть аккаунт?'}{' '}
-          <button type="button" className="auth-toggle" onClick={handleToggle}>
-            {mode === 'login' ? 'Зарегистрируйтесь' : 'Войдите'}
-          </button>
-        </div>
       </form>
     </div>
   )
