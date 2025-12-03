@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { login, register } from '../api/auth'
+import { request } from '../api/request'
 import '../App.css'
 
 const initialRegisterState = {
@@ -25,10 +25,24 @@ const saveSession = (result) => {
   }
 }
 
+const flattenFieldErrors = (fields) => {
+  if (!fields || typeof fields !== 'object') return {}
+  const normalized = {}
+  Object.entries(fields).forEach(([key, value]) => {
+    if (Array.isArray(value)) {
+      normalized[key] = value[0]
+    } else if (typeof value === 'string') {
+      normalized[key] = value
+    }
+  })
+  return normalized
+}
+
 const AuthPage = () => {
   const [mode, setMode] = useState('login')
   const [form, setForm] = useState(initialLoginState)
-  const [error, setError] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
+  const [fieldErrors, setFieldErrors] = useState({})
   const [loading, setLoading] = useState(false)
 
   const title = mode === 'login' ? 'Войти' : 'Регистрация'
@@ -38,7 +52,8 @@ const AuthPage = () => {
   const handleToggle = () => {
     setMode((prev) => (prev === 'login' ? 'register' : 'login'))
     setForm(mode === 'login' ? initialRegisterState : initialLoginState)
-    setError('')
+    setErrorMessage('')
+    setFieldErrors({})
   }
 
   const onChange = (e) => {
@@ -48,28 +63,23 @@ const AuthPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setError('')
+    setErrorMessage('')
+    setFieldErrors({})
     setLoading(true)
 
-    try {
-      const payload = { ...form }
-      const result =
-        mode === 'login'
-          ? await login({ email: payload.email, password: payload.password })
-          : await register(payload)
+    const payload = { ...form }
+    const url = mode === 'login' ? '/api/login' : '/api/register'
+    const result = await request('post', url, payload)
 
+    if (result && !result.fields) {
       saveSession(result)
       window.location.assign('/')
-    } catch (err) {
-      const message = err?.message || 'Server unavailable'
-      if (message === 'Network Error') {
-        setError('Server unavailable')
-      } else {
-        setError(message)
-      }
-    } finally {
-      setLoading(false)
+      return
     }
+
+    setErrorMessage(result?.message || 'Server unavailable')
+    setFieldErrors(flattenFieldErrors(result?.fields))
+    setLoading(false)
   }
 
   const registerFields = useMemo(
@@ -138,7 +148,17 @@ const AuthPage = () => {
           </button>
         </div>
 
-        {error && <div className="auth-error">{error}</div>}
+        {errorMessage && <div className="auth-error">{errorMessage}</div>}
+
+        {Object.keys(fieldErrors).length > 0 && (
+          <div className="auth-error">
+            {Object.entries(fieldErrors).map(([field, message]) => (
+              <div key={field}>
+                {field}: {message}
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="auth-fields">
           <label className="auth-label">
