@@ -38,7 +38,7 @@ const flattenFieldErrors = (fields) => {
   return normalized
 }
 
-const AuthPage = () => {
+const AuthPage = ({ onAuth }) => {
   const [mode, setMode] = useState('login')
   const [form, setForm] = useState(initialLoginState)
   const [errorMessage, setErrorMessage] = useState('')
@@ -73,6 +73,7 @@ const AuthPage = () => {
 
     if (result && !result.fields) {
       saveSession(result)
+      if (onAuth) onAuth()
       window.location.assign('/')
       return
     }
