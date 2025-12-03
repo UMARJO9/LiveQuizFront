@@ -27,13 +27,24 @@ const MainPage = () => {
 
   const initials = getInitials(user)
 
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('refresh')
+    localStorage.removeItem('user')
+    window.location.assign('/')
+  }
+
   return (
     <div className="main-page">
       <header className="main-header">
+        <div className="main-spacer" />
         <div className="main-user">
           <div className="avatar">{initials}</div>
           <div className="user-name">{displayName}</div>
         </div>
+        <button className="logout-button" type="button" onClick={handleLogout}>
+          Выйти
+        </button>
       </header>
       <main className="main-content">
         <h1 className="main-greeting">Привет!</h1>
