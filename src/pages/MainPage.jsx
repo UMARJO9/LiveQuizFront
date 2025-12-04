@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import QuizCard from '../components/QuizCard'
 import { apiRequest } from '../api/client'
 import '../App.css'
@@ -40,35 +40,43 @@ const MainPage = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
+  const didFetchRef = useRef(false)
   useEffect(() => {
-    const controller = new AbortController()
+    if (didFetchRef.current) return
+    didFetchRef.current = true
+
+    let isMounted = true
     const load = async () => {
       setLoading(true)
       setError('')
       try {
         const token = (localStorage.getItem('token') || '').trim()
         if (!token) {
-          setError('Токен не найден. Выполните вход заново.')
-          setQuizzes([])
+          if (isMounted) {
+            setError('Токен не найден. Выполните вход заново.')
+            setQuizzes([])
+          }
           return
         }
 
-        const data = await apiRequest('get', '/api/quizzes/', undefined, { signal: controller.signal })
+        const data = await apiRequest('get', '/api/quizzes/')
+        if (!isMounted) return
         if (Array.isArray(data)) {
           setQuizzes(data)
         } else {
           setQuizzes([])
         }
       } catch (err) {
-        if (err.name !== 'AbortError') {
-          setError(err.message || 'Failed to load quizzes')
-        }
+        if (!isMounted) return
+        setError(err.message || 'Failed to load quizzes')
       } finally {
-        setLoading(false)
+        if (isMounted) setLoading(false)
       }
     }
     load()
-    return () => controller.abort()
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   return (
@@ -111,3 +119,4 @@ const MainPage = () => {
 }
 
 export default MainPage
+

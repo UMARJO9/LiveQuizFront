@@ -1,7 +1,7 @@
 ﻿import axios from 'axios'
 
 const client = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/',
+  baseURL: import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000',
 })
 
 export const request = async (method, url, data) => {
@@ -9,7 +9,7 @@ export const request = async (method, url, data) => {
     const response = await client.request({
       method,
       url,
-      data: data !== undefined ? JSON.stringify(data) : undefined,
+      data,
       headers: {
         'Content-Type': 'application/json',
       },

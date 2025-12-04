@@ -1,6 +1,6 @@
 ﻿import axios from 'axios'
 
-const API_BASE_URL = 'http://127.0.0.1:8000/'
+const API_BASE_URL = (import.meta.env?.VITE_API_URL) || 'http://127.0.0.1:8000'
 const ACCESS_TOKEN_KEY = 'token'
 const REFRESH_TOKEN_KEY = 'refresh'
 
@@ -34,7 +34,7 @@ export const refreshToken = async () => {
   }
 
   try {
-    const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+    const response = await api.post('/api/auth/refresh/', {
       refreshToken: refresh,
     })
     const { success, code, message, result } = response.data ?? {}
