@@ -48,18 +48,31 @@ const AuthPage = ({ onAuth }) => {
     setFieldErrors({})
     setLoading(true)
 
-    const payload = { ...form }
-    const result = await request('post', '/auth/login', payload)
+    const email = (form.email || '').trim()
+    const password = form.password || ''
+    if (!email || !password) {
+      setErrorMessage('Email and password are required')
+      setLoading(false)
+      return
+    }
 
-    if (result && !result.fields) {
+    // Backend expects `username` + `password`
+    const payload = { username: email, password }
+    const { success, result, message, fields } = await request(
+      'post',
+      '/api/auth/login/',
+      payload,
+    )
+
+    if (success === true) {
       saveSession(result)
       if (onAuth) onAuth()
       window.location.assign('/')
       return
     }
 
-    setErrorMessage(result?.message || 'Server unavailable')
-    setFieldErrors(flattenFieldErrors(result?.fields))
+    setErrorMessage(message || 'Server unavailable')
+    setFieldErrors(flattenFieldErrors(fields))
     setLoading(false)
   }
 

@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const client = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
+  baseURL: import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/',
 })
 
 export const request = async (method, url, data) => {
@@ -16,9 +16,12 @@ export const request = async (method, url, data) => {
     })
 
     const { success, result, message } = response.data ?? {}
-    if (success === true) return result
+    if (success === true) {
+      return { success: true, result, message: message || '' }
+    }
 
     return {
+      success: false,
       fields: result ?? {},
       message: message || 'Request failed',
     }
@@ -26,15 +29,16 @@ export const request = async (method, url, data) => {
     if (error.response?.data) {
       const { message, result } = error.response.data ?? {}
       return {
+        success: false,
         fields: result ?? {},
         message: message || 'Request failed',
       }
     }
 
     if (error.request && !error.response) {
-      return { fields: null, message: 'Server unavailable' }
+      return { success: false, fields: {}, message: 'Server unavailable' }
     }
 
-    return { fields: null, message: error.message || 'Request failed' }
+    return { success: false, fields: {}, message: error.message || 'Request failed' }
   }
 }
