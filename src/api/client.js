@@ -54,7 +54,7 @@ export const refreshToken = async () => {
     }
 
     storeTokens(result?.token, result?.refresh)
-    return result?.token
+    return (result ?? response.data)?.token
   } catch (error) {
     if (error.response?.status === 401) {
       handleLogout()
@@ -103,7 +103,7 @@ export const apiRequest = async (method, url, data, config = {}) => {
       throw new Error(message || 'Request failed')
     }
 
-    return result
+    return (result ?? response.data)
   } catch (error) {
     if (error.response) {
       const status = error.response.status
@@ -128,6 +128,9 @@ export const apiRequest = async (method, url, data, config = {}) => {
     throw new Error(error.message || 'Request failed')
   }
 }
+
+
+
 
 
 

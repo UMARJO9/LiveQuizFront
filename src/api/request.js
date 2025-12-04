@@ -1,4 +1,4 @@
-import axios from 'axios'
+﻿import axios from 'axios'
 
 const client = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/',
@@ -17,7 +17,9 @@ export const request = async (method, url, data) => {
 
     const { success, result, message } = response.data ?? {}
     if (success === true) {
-      return { success: true, result, message: message || '' }
+      // Support endpoints that return token at top-level (no result wrapper)
+      const normalized = result ?? response.data
+      return { success: true, result: normalized, message: message || '' }
     }
 
     return {
@@ -42,3 +44,5 @@ export const request = async (method, url, data) => {
     return { success: false, fields: {}, message: error.message || 'Request failed' }
   }
 }
+
+
