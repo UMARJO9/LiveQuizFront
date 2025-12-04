@@ -1,17 +1,27 @@
-﻿import axios from 'axios'
+import axios from 'axios'
 
 const client = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000',
 })
 
+const getToken = () => {
+  try {
+    return (localStorage.getItem('token') || '').trim()
+  } catch {
+    return ''
+  }
+}
+
 export const request = async (method, url, data) => {
   try {
+    const token = getToken()
     const response = await client.request({
       method,
       url,
       data,
       headers: {
         'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     })
 
@@ -44,5 +54,4 @@ export const request = async (method, url, data) => {
     return { success: false, fields: {}, message: error.message || 'Request failed' }
   }
 }
-
 

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import QuizCard from '../components/QuizCard'
 import { apiRequest } from '../api/client'
 import '../App.css'
+import CreateTopicModal from '../components/CreateTopicModal'
 
 const getInitials = (user) => {
   if (!user) return 'U'
@@ -39,6 +40,7 @@ const MainPage = () => {
   const [quizzes, setQuizzes] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [showCreate, setShowCreate] = useState(false)
 
   const didFetchRef = useRef(false)
   useEffect(() => {
@@ -112,11 +114,46 @@ const MainPage = () => {
             quizzes.map((quiz) => (
               <QuizCard key={quiz.id} quiz={quiz} onClick={() => console.log(quiz.id)} />
             ))}
+
+          {!loading && !error && (
+            <button
+              type="button"
+              onClick={() => setShowCreate(true)}
+              aria-label="Создать тему"
+              style={{
+                border: '2px dashed #94a3b8',
+                background: 'transparent',
+                borderRadius: 12,
+                padding: 24,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                color: '#475569',
+                fontSize: 32,
+                height: 160,
+              }}
+              className="quiz-card"
+            >
+              +
+            </button>
+          )}
         </div>
       </main>
+      {showCreate && (
+        <CreateTopicModal
+          onCancel={() => setShowCreate(false)}
+          onCreated={(topic) => {
+            setShowCreate(false)
+            // моментальный переход на страницу темы
+            if (topic?.id) {
+              window.location.assign(`/topics/${topic.id}`)
+            }
+          }}
+        />
+      )}
     </div>
   )
 }
 
 export default MainPage
-
