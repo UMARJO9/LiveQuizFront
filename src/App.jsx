@@ -5,7 +5,8 @@ import {useState} from "react";
 
 function App() {
   const [isAuthed, setIsAuthed] = useState(() => {
-    return Boolean(localStorage.getItem('token'))
+    const raw = localStorage.getItem('token')
+    return Boolean(raw && raw !== 'undefined' && raw !== 'null' && raw.trim() !== '')
   })
 
   return isAuthed ? (

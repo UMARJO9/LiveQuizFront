@@ -9,8 +9,10 @@ const initialLoginState = {
 
 const saveSession = (result) => {
   if (!result) return
-  localStorage.setItem('token', result.access)
-  localStorage.setItem('refresh', result.refresh)
+  const accessToken = result?.access ?? result?.token ?? result?.access_token ?? result?.jwt ?? ''
+  const refreshToken = result?.refresh ?? result?.refresh_token ?? ''
+  if (accessToken) localStorage.setItem('token', accessToken)
+  if (refreshToken) localStorage.setItem('refresh', refreshToken)
   if (result.user) {
     localStorage.setItem('user', JSON.stringify(result.user))
   }
@@ -67,7 +69,7 @@ const AuthPage = ({ onAuth }) => {
     if (success === true) {
       saveSession(result)
       if (onAuth) onAuth()
-      window.location.assign('/')
+      // Avoid hard reload; App will render MainPage based on isAuthed
       return
     }
 
