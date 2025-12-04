@@ -1,4 +1,6 @@
-import { useMemo } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
+import QuizCard from '../components/QuizCard'
+import { apiRequest } from '../api/client'
 import '../App.css'
 
 const getInitials = (user) => {
@@ -34,6 +36,41 @@ const MainPage = () => {
     window.location.assign('/')
   }
 
+  const [quizzes, setQuizzes] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    const controller = new AbortController()
+    const load = async () => {
+      setLoading(true)
+      setError('')
+      try {
+        const token = (localStorage.getItem('token') || '').trim()
+        if (!token) {
+          setError('Токен не найден. Выполните вход заново.')
+          setQuizzes([])
+          return
+        }
+
+        const data = await apiRequest('get', '/api/quizzes/', undefined, { signal: controller.signal })
+        if (Array.isArray(data)) {
+          setQuizzes(data)
+        } else {
+          setQuizzes([])
+        }
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          setError(err.message || 'Failed to load quizzes')
+        }
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
+    return () => controller.abort()
+  }, [])
+
   return (
     <div className="main-page">
       <header className="main-header">
@@ -47,8 +84,27 @@ const MainPage = () => {
         </button>
       </header>
       <main className="main-content">
-        <h1 className="main-greeting">Привет!</h1>
-        <p className="main-sub">Добро пожаловать в приложение.</p>
+        <div className="quiz-grid" style={{ width: '100%' }}>
+          {loading &&
+            Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="quiz-skeleton" />
+            ))}
+
+          {!loading && error && (
+            <div className="error-text" style={{ gridColumn: '1 / -1' }}>
+              {error}
+            </div>
+          )}
+
+          {!loading && !error && quizzes.length === 0 && (
+            <div style={{ gridColumn: '1 / -1', color: '#475569' }}>Тем пока нет</div>
+          )}
+
+          {!loading && !error &&
+            quizzes.map((quiz) => (
+              <QuizCard key={quiz.id} quiz={quiz} onClick={() => console.log(quiz.id)} />
+            ))}
+        </div>
       </main>
     </div>
   )

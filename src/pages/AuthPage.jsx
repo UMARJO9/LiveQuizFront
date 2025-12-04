@@ -59,7 +59,7 @@ const AuthPage = ({ onAuth }) => {
     }
 
     // Backend expects `username` + `password`
-    const payload = { username: email, password }
+    const payload = { email, password }
     const { success, result, message, fields } = await request(
       'post',
       '/api/auth/login/',
