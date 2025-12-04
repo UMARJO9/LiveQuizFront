@@ -220,24 +220,12 @@
 .quiz-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 16px;
+  gap: 20px;
   width: 100%;
   max-width: 1200px;
 }
 
-.quiz-card {
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  padding: 20px;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-  cursor: pointer;
-}
-
-.quiz-card:hover {
-  transform: translateY(-2px) scale(1.01);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
-}
+.quiz-card { border-radius: 18px; }
 
 .quiz-title {
   margin: 0 0 8px 0;
@@ -262,8 +250,8 @@
 
 .quiz-skeleton {
   background: #e5e7eb;
-  border-radius: 16px;
-  height: 140px;
+  border-radius: 18px;
+  height: 160px;
   animation: pulse 1.2s ease-in-out infinite;
 }
 

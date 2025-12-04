@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import QuizCard from '../components/QuizCard'
+import AddCard from '../components/AddCard'
 import { apiRequest } from '../api/client'
 import '../App.css'
 import CreateTopicModal from '../components/CreateTopicModal'
@@ -94,7 +95,10 @@ const MainPage = () => {
         </button>
       </header>
       <main className="main-content">
-        <div className="quiz-grid" style={{ width: '100%' }}>
+        <div
+          className="quiz-grid"
+          style={{ width: '100%', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 20 }}
+        >
           {loading &&
             Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="quiz-skeleton" />
@@ -112,31 +116,17 @@ const MainPage = () => {
 
           {!loading && !error &&
             quizzes.map((quiz) => (
-              <QuizCard key={quiz.id} quiz={quiz} onClick={() => console.log(quiz.id)} />
+              <QuizCard
+                key={quiz.id}
+                title={quiz.title}
+                description={quiz.description}
+                question_timer={quiz.question_timer}
+                onClick={() => console.log(quiz.id)}
+              />
             ))}
 
           {!loading && !error && (
-            <button
-              type="button"
-              onClick={() => setShowCreate(true)}
-              aria-label="Создать тему"
-              style={{
-                border: '2px dashed #94a3b8',
-                background: 'transparent',
-                borderRadius: 12,
-                padding: 24,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                color: '#475569',
-                fontSize: 32,
-                height: 160,
-              }}
-              className="quiz-card"
-            >
-              +
-            </button>
+            <AddCard onClick={() => setShowCreate(true)} />
           )}
         </div>
       </main>
