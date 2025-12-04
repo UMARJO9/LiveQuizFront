@@ -1,28 +1,28 @@
 import React, { useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 
-const clampStyle = {
-  display: '-webkit-box',
-  WebkitBoxOrient: 'vertical',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-}
-
-const QuizCard = ({ title, description, question_timer, onClick }) => {
+const QuizCard = ({ id, title, description, question_timer, onClick }) => {
   const timerText = useMemo(() => {
     const n = Number(question_timer)
-    return Number.isFinite(n) && n > 0 ? `${n} сек.` : null
+    return Number.isFinite(n) && n > 0 ? `${n} sec` : null
   }, [question_timer])
 
+  const navigate = useNavigate()
+  const handleClick = () => {
+    if (onClick) return onClick()
+    if (id != null) navigate(`/topic/${id}`)
+  }
+
   return (
-    <div className="qc-wrap" role="button" tabIndex={0} onClick={onClick}
-         onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onClick?.()}>
+    <div className="qc-wrap" role="button" tabIndex={0} onClick={handleClick}
+         onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleClick()}>
       <div className="qc-glow" aria-hidden />
       <div className="qc-card">
-        <h3 className="qc-title" title={title}>{title || 'Без названия'}</h3>
+        <h3 className="qc-title" title={title}>{title || 'Untitled'}</h3>
         {description && (
           <p className="qc-desc" title={description}>{description}</p>
         )}
-        <div className="qc-timer">{timerText ? `⏱ ${timerText}` : '⏱ —'}</div>
+        <div className="qc-timer">Timer: {timerText || '-'}</div>
       </div>
 
       <style>{`

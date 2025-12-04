@@ -4,6 +4,7 @@ import AddCard from '../components/AddCard'
 import { apiRequest } from '../api/client'
 import '../App.css'
 import CreateTopicModal from '../components/CreateTopicModal'
+import { useNavigate } from 'react-router-dom'
 
 const getInitials = (user) => {
   if (!user) return 'U'
@@ -42,6 +43,7 @@ const MainPage = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [showCreate, setShowCreate] = useState(false)
+  const navigate = useNavigate()
 
   const didFetchRef = useRef(false)
   useEffect(() => {
@@ -118,10 +120,10 @@ const MainPage = () => {
             quizzes.map((quiz) => (
               <QuizCard
                 key={quiz.id}
+                id={quiz.id}
                 title={quiz.title}
                 description={quiz.description}
                 question_timer={quiz.question_timer}
-                onClick={() => console.log(quiz.id)}
               />
             ))}
 
@@ -135,10 +137,7 @@ const MainPage = () => {
           onCancel={() => setShowCreate(false)}
           onCreated={(topic) => {
             setShowCreate(false)
-            // моментальный переход на страницу темы
-            if (topic?.id) {
-              window.location.assign(`/topics/${topic.id}`)
-            }
+            if (topic?.id) navigate(`/topic/${topic.id}`)
           }}
         />
       )}
