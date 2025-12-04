@@ -40,9 +40,9 @@ const QuizCard = ({ title, description, question_timer, onClick }) => {
         .qc-wrap:hover .qc-card { box-shadow: 0 12px 28px rgba(0,0,0,0.13); }
 
         .qc-title { margin: 0 0 8px 0; font-size: 1.1rem; font-weight: 800; color: #0f172a;
-                    -webkit-line-clamp: 2; ${Object.entries(clampStyle).map(([k,v])=>`${k}:${v}`).join(';')} }
+                    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; text-overflow: ellipsis; word-break: break-word; }
         .qc-desc { margin: 0 0 12px 0; color: #64748b; font-size: 0.95rem; line-height: 1.45;
-                   -webkit-line-clamp: 2; ${Object.entries(clampStyle).map(([k,v])=>`${k}:${v}`).join(';')} }
+                   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; text-overflow: ellipsis; word-break: break-word; }
         .qc-timer { color: #334155; font-size: .9rem; }
       `}</style>
     </div>

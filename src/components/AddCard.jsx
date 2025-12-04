@@ -18,8 +18,8 @@ const AddCard = ({ onClick }) => {
                    box-shadow: 0 6px 18px rgba(0,0,0,0.05); transition: box-shadow .18s ease, background-color .18s ease; }
         .ac-wrap:hover .ac-card { box-shadow: 0 12px 24px rgba(0,0,0,0.08); background: #f5f8ff; }
 
-        .ac-plus { width: 84px; height: 84px; border-radius: 18px; display: grid; place-items: center; font-size: 52px; font-weight: 800;
-                   color: #4A90E2; background: rgba(74,144,226,0.12); }
+        .ac-plus { width: 84px; height: 84px; border-radius: 18px; display: flex; align-items: center; justify-content: center;
+                   font-size: 52px; line-height: 1; font-weight: 800; color: #4A90E2; background: rgba(74,144,226,0.12); }
       `}</style>
     </div>
   )
