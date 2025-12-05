@@ -58,6 +58,8 @@ const TopicPage = () => {
   const [savingMap, setSavingMap] = useState({})
   const [savedMap, setSavedMap] = useState({})
   const [questionErrors, setQuestionErrors] = useState({})
+  const [deletingMap, setDeletingMap] = useState({})
+  const [deleteErrors, setDeleteErrors] = useState({})
 
   useEffect(() => {
     let alive = true
@@ -135,6 +137,27 @@ const TopicPage = () => {
       setErrorMsg(e2.message || 'Ошибка запроса')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const deleteQuestion = async (questionId) => {
+    setDeleteErrors((m) => ({ ...m, [questionId]: '' }))
+    setDeletingMap((m) => ({ ...m, [questionId]: true }))
+    try {
+      const { success, message } = await request('delete', `/api/questions/${questionId}/delete/`)
+      if (success) {
+        setQuestions((prev) => prev.filter((q) => q.id !== questionId))
+        setSavingMap((m) => { const n = { ...m }; delete n[questionId]; return n })
+        setSavedMap((m) => { const n = { ...m }; delete n[questionId]; return n })
+        setQuestionErrors((m) => { const n = { ...m }; delete n[questionId]; return n })
+        setDeleteErrors((m) => { const n = { ...m }; delete n[questionId]; return n })
+      } else {
+        setDeleteErrors((m) => ({ ...m, [questionId]: message || 'Не удалось удалить вопрос' }))
+      }
+    } catch (e) {
+      setDeleteErrors((m) => ({ ...m, [questionId]: e.message || 'Ошибка сети' }))
+    } finally {
+      setDeletingMap((m) => ({ ...m, [questionId]: false }))
     }
   }
 
@@ -446,7 +469,32 @@ const TopicPage = () => {
                         >
                           {savingMap[q.id] ? 'Сохранение…' : 'Сохранить изменения'}
                         </button>
+                        <button
+                          type="button"
+                          disabled={!!deletingMap[q.id]}
+                          onClick={() => deleteQuestion(q.id)}
+                          onMouseEnter={(e) => { e.currentTarget.style.filter = 'brightness(0.95)' }}
+                          onMouseLeave={(e) => { e.currentTarget.style.filter = 'none' }}
+                          style={{
+                            padding: '12px 16px',
+                            borderRadius: 10,
+                            border: 'none',
+                            background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                            color: '#fff',
+                            fontWeight: 800,
+                            cursor: 'pointer',
+                            minWidth: 220,
+                            boxShadow: '0 10px 24px rgba(239,68,68,0.25)',
+                            transition: 'all 160ms ease-in-out',
+                          }}
+                        >
+                          {deletingMap[q.id] ? 'Удаление…' : 'Удалить вопрос'}
+                        </button>
                       </div>
+
+                      {deleteErrors[q.id] && (
+                        <div style={{ ...errorStyle, marginTop: 8 }}>{deleteErrors[q.id]}</div>
+                      )}
                     </div>
                   </div>
                 ))}
