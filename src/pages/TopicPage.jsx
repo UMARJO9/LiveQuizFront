@@ -60,6 +60,41 @@ const TopicPage = () => {
   const [questionErrors, setQuestionErrors] = useState({})
   const [deletingMap, setDeletingMap] = useState({})
   const [deleteErrors, setDeleteErrors] = useState({})
+  const [baselineQuestions, setBaselineQuestions] = useState({})
+
+  const normalizeQuestion = (q) => {
+    if (!q) return { text: '', options: [] }
+    const text = (q.text || '').trim()
+    const options = Array.isArray(q.options)
+      ? q.options.map((o) => ({ text: (o.text || '').trim(), is_correct: !!o.is_correct }))
+      : []
+    return { text, options }
+  }
+
+  const buildBaseline = (arr) => {
+    const map = {}
+    if (Array.isArray(arr)) {
+      for (const it of arr) {
+        if (it?.id != null) map[it.id] = normalizeQuestion(it)
+      }
+    }
+    return map
+  }
+
+  const hasQuestionChanged = (q) => {
+    if (!q?.id) return false
+    const base = baselineQuestions[q.id]
+    if (!base) return false
+    const cur = normalizeQuestion(q)
+    if (base.text !== cur.text) return true
+    if ((base.options?.length || 0) !== (cur.options?.length || 0)) return true
+    for (let i = 0; i < (cur.options || []).length; i++) {
+      const b = base.options?.[i] || { text: '', is_correct: false }
+      const c = cur.options?.[i] || { text: '', is_correct: false }
+      if (b.text !== c.text || !!b.is_correct !== !!c.is_correct) return true
+    }
+    return false
+  }
 
   useEffect(() => {
     let alive = true
@@ -77,7 +112,9 @@ const TopicPage = () => {
             description: result?.description ?? '',
             question_timer: String(result?.question_timer ?? ''),
           })
-          setQuestions(Array.isArray(result?.questions) ? result.questions : [])
+          const loadedQuestions = Array.isArray(result?.questions) ? result.questions : []
+          setQuestions(loadedQuestions)
+          setBaselineQuestions(buildBaseline(loadedQuestions))
         } else {
           setErrorMsg(message || 'Не удалось загрузить тему')
         }
@@ -427,6 +464,7 @@ const TopicPage = () => {
                       </div>
 
                       <div style={actionsStyle}>
+                        {hasQuestionChanged(q) && (
                         <button
                           type="button"
                           disabled={!!savingMap[q.id]}
@@ -444,6 +482,7 @@ const TopicPage = () => {
                               if (success) {
                                 const updated = result || payload
                                 setQuestions((prev) => prev.map((it) => (it.id === q.id ? { ...it, ...updated } : it)))
+                                setBaselineQuestions((m) => ({ ...m, [q.id]: normalizeQuestion(updated) }))
                                 setSavedMap((m) => ({ ...m, [q.id]: 'Сохранено' }))
                               } else {
                                 setQuestionErrors((m) => ({ ...m, [q.id]: fields || {} }))
@@ -470,6 +509,7 @@ const TopicPage = () => {
                         >
                           {savingMap[q.id] ? 'Сохранение…' : 'Сохранить изменения'}
                         </button>
+                        )}
                         <button
                           type="button"
                           disabled={!!deletingMap[q.id]}
@@ -576,6 +616,9 @@ const TopicPage = () => {
                           if (success) {
                             const created = result || payload
                             setQuestions((prev) => Array.isArray(prev) ? [...prev, created] : [created])
+                            if (created?.id != null) {
+                              setBaselineQuestions((m) => ({ ...m, [created.id]: normalizeQuestion(created) }))
+                            }
                             setCreateForms((prev) => prev.filter((_, i) => i !== cfi))
                           } else {
                             setCreateForms((prev) => prev.map((it, i) => i === cfi ? { ...it, error: (message || 'Не удалось создать вопрос'), fields: (fields || {}), saving: false } : it))
