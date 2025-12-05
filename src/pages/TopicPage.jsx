@@ -54,19 +54,7 @@ const TopicPage = () => {
   const [fieldErrors, setFieldErrors] = useState({})
 
   const [questions, setQuestions] = useState([])
-  const [creating, setCreating] = useState(false)
-  const [createSaving, setCreateSaving] = useState(false)
-  const [createError, setCreateError] = useState('')
-  const [createFields, setCreateFields] = useState({})
-  const [createForm, setCreateForm] = useState({
-    text: '',
-    options: [
-      { text: '', is_correct: false },
-      { text: '', is_correct: false },
-      { text: '', is_correct: false },
-      { text: '', is_correct: false },
-    ],
-  })
+  const [createForms, setCreateForms] = useState([])
   const [savingMap, setSavingMap] = useState({})
   const [savedMap, setSavedMap] = useState({})
   const [questionErrors, setQuestionErrors] = useState({})
@@ -237,6 +225,7 @@ const TopicPage = () => {
               type="button"
               onClick={() => { setCreating(true); setCreateError(''); setCreateFields({}); }}
               style={{
+                display: 'none',
                 width: '100%',
                 padding: '18px 16px',
                 borderRadius: 12,
@@ -251,7 +240,7 @@ const TopicPage = () => {
               + Добавить вопрос
             </button>
 
-            {creating && (
+            {false && (
               <div style={{ marginTop: 12, padding: 16, borderRadius: 12, background: '#fff', boxShadow: '0 8px 24px rgba(15,23,42,0.08)' }}>
                 {createError && <div style={{ ...errorStyle, marginBottom: 8 }}>{createError}</div>}
                 <div style={rowStyle}>
@@ -463,6 +452,141 @@ const TopicPage = () => {
                 ))}
               </div>
             )}
+
+            {createForms.map((cf, cfi) => (
+              <div key={cf.key ?? cfi} style={{ marginTop: 12, padding: 16, borderRadius: 12, background: '#fff', boxShadow: '0 8px 24px rgba(15,23,42,0.08)' }}>
+                {cf.error && <div style={{ ...errorStyle, marginBottom: 8 }}>{cf.error}</div>}
+                <div style={rowStyle}>
+                  <label style={labelStyle}>
+                    Текст вопроса
+                    <input
+                      type="text"
+                      value={cf.text}
+                      onChange={(e) => setCreateForms((prev) => prev.map((it, i) => i === cfi ? { ...it, text: e.target.value } : it))}
+                      style={{ ...inputStyle, borderColor: cf.fields?.text ? '#ef4444' : '#e2e8f0' }}
+                      placeholder="Введите текст вопроса"
+                    />
+                    {cf.fields?.text && <span style={{ color: '#b91c1c', fontSize: 12 }}>{cf.fields.text}</span>}
+                  </label>
+
+                  <div style={{ display: 'grid', gap: 12 }}>
+                    <div style={{ color: '#334155', fontWeight: 600 }}>Варианты ответа</div>
+                    {(cf.options || []).map((opt, oi) => (
+                      <div key={oi} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 10, alignItems: 'center' }}>
+                        <input
+                          type="text"
+                          value={opt.text}
+                          onChange={(e) => setCreateForms((prev) => prev.map((it, i) => {
+                            if (i !== cfi) return it
+                            const next = [...(it.options || [])]
+                            next[oi] = { ...next[oi], text: e.target.value }
+                            return { ...it, options: next }
+                          }))}
+                          style={{ ...inputStyle, margin: 0, borderColor: cf.fields?.[`options.${oi}.text`] ? '#ef4444' : '#e2e8f0' }}
+                          placeholder={`Вариант ${oi + 1}`}
+                        />
+                        <label style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#475569' }}>
+                          <input
+                            type="checkbox"
+                            checked={!!opt.is_correct}
+                            onChange={(e) => setCreateForms((prev) => prev.map((it, i) => {
+                              if (i !== cfi) return it
+                              const next = [...(it.options || [])]
+                              next[oi] = { ...next[oi], is_correct: e.target.checked }
+                              return { ...it, options: next }
+                            }))}
+                          />
+                          Правильный ответ
+                        </label>
+                        {cf.fields?.[`options.${oi}.text`] && (
+                          <div style={{ gridColumn: '1 / -1', color: '#b91c1c', fontSize: 12 }}>{cf.fields[`options.${oi}.text`]}</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div style={actionsStyle}>
+                    <button
+                      type="button"
+                      onClick={() => setCreateForms((prev) => prev.filter((_, i) => i !== cfi))}
+                      style={{ padding: '12px 16px', borderRadius: 10, border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer' }}
+                    >
+                      Отмена
+                    </button>
+                    <button
+                      type="button"
+                      disabled={!!cf.saving}
+                      onClick={async () => {
+                        setCreateForms((prev) => prev.map((it, i) => i === cfi ? { ...it, error: '', fields: {}, saving: true } : it))
+                        try {
+                          const payload = {
+                            text: (cf.text || '').trim(),
+                            options: (cf.options || []).map((o) => ({ text: (o.text || '').trim(), is_correct: !!o.is_correct })),
+                          }
+                          const { success, result, message, fields } = await request('post', `/api/topics/${id}/questions/`, payload)
+                          if (success) {
+                            const created = result || payload
+                            setQuestions((prev) => Array.isArray(prev) ? [...prev, created] : [created])
+                            setCreateForms((prev) => prev.filter((_, i) => i !== cfi))
+                          } else {
+                            setCreateForms((prev) => prev.map((it, i) => i === cfi ? { ...it, error: (message || 'Не удалось создать вопрос'), fields: (fields || {}), saving: false } : it))
+                          }
+                        } catch (e) {
+                          setCreateForms((prev) => prev.map((it, i) => i === cfi ? { ...it, error: (e.message || 'Ошибка сети'), saving: false } : it))
+                        }
+                      }}
+                      style={{
+                        padding: '12px 16px',
+                        borderRadius: 10,
+                        border: 'none',
+                        background: 'linear-gradient(135deg, #10b981, #059669)',
+                        color: '#fff',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        boxShadow: '0 10px 24px rgba(16,185,129,0.25)'
+                      }}
+                    >
+                      {cf.saving ? 'Создание…' : 'Создать вопрос'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            <button
+              type="button"
+              onClick={() => setCreateForms((prev) => ([
+                ...prev,
+                {
+                  key: Date.now() + Math.random(),
+                  text: '',
+                  options: [
+                    { text: '', is_correct: false },
+                    { text: '', is_correct: false },
+                    { text: '', is_correct: false },
+                    { text: '', is_correct: false },
+                  ],
+                  error: '',
+                  fields: {},
+                  saving: false,
+                },
+              ]))}
+              style={{
+                width: '100%',
+                padding: '18px 16px',
+                borderRadius: 12,
+                border: '1px dashed #94a3b8',
+                background: '#fff',
+                color: '#2563eb',
+                fontWeight: 800,
+                fontSize: '1rem',
+                cursor: 'pointer',
+                marginTop: 16,
+                marginBottom: 16,
+              }}
+            >
+              + Добавить вопрос
+            </button>
           </div>
         )}
       </form>
