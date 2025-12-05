@@ -258,7 +258,7 @@ const TopicPage = () => {
               <button
                 type="submit"
                 disabled={saving}
-                style={{
+                style={{ display: Object.keys(buildPatch()).length > 0 ? 'block' : 'none', 
                   padding: '14px 18px',
                   borderRadius: 12,
                   border: 'none',
@@ -687,3 +687,8 @@ const TopicPage = () => {
 }
 
 export default TopicPage
+
+
+
+
+
