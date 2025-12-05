@@ -436,10 +436,11 @@ const TopicPage = () => {
                             setSavingMap((m) => ({ ...m, [q.id]: true }))
                             try {
                               const payload = {
+                                topic_id: id,
                                 text: (q.text || '').trim(),
                                 options: (q.options || []).map((o) => ({ id: o.id, text: (o.text || '').trim(), is_correct: !!o.is_correct })),
                               }
-                              const { success, result, message, fields } = await request('patch', `/api/topics/${id}/questions/${q.id}/`, payload)
+                              const { success, result, message, fields } = await request('patch', `/api/questions/${q.id}/`, payload)
                               if (success) {
                                 const updated = result || payload
                                 setQuestions((prev) => prev.map((it) => (it.id === q.id ? { ...it, ...updated } : it)))
