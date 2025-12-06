@@ -124,16 +124,29 @@ const TopicPage = () => {
   }
 
   const onSaveQuestion = async (q) => {
+    const fields = {}
+    const text = (q.text || '').trim()
+    if (!text) fields.text = 'Заполните текст вопроса'
+    const options = Array.isArray(q.options) ? q.options : []
+    options.forEach((opt, idx) => {
+      if (!(opt?.text || '').trim()) fields[`options.${idx}.text`] = 'Заполните текст варианта'
+    })
+    const correctCount = options.filter(o => o?.is_correct).length
+    if (correctCount === 0) fields.options = 'Выберите хотя бы один правильный ответ'
+    if (Object.keys(fields).length > 0) {
+      if (q.id != null) setQuestionErrors(m => ({ ...m, [q.id]: { ...fields, message: fields.options || fields.text || '' } }))
+      return
+    }
     setSavedMap(m => ({ ...m, [q.id]: '' })); setQuestionErrors(m => ({ ...m, [q.id]: {} })); setSavingMap(m => ({ ...m, [q.id]: true }))
     try {
       const payload = { topic_id: id, text: (q.text || '').trim(), options: (q.options || []).map(o => ({ id: o.id, text: (o.text || '').trim(), is_correct: !!o.is_correct })) }
-      const { success, result, message, fields } = await request('patch', `/api/questions/${q.id}/`, payload)
+      const { success, result, message, fields: serverFields } = await request('patch', `/api/questions/${q.id}/`, payload)
       if (success) {
         const updated = result || payload
         setQuestions(prev => prev.map(it => it.id === q.id ? { ...it, ...updated } : it))
         setSavedMap(m => ({ ...m, [q.id]: 'Сохранено' }))
         setBaselineQuestions(m => ({ ...m, [q.id]: normalizeQuestion(updated) }))
-      } else { setQuestionErrors(m => ({ ...m, [q.id]: fields || {} })); if (message) setErrorMsg(message) }
+      } else { setQuestionErrors(m => ({ ...m, [q.id]: serverFields || {} })); if (message) setErrorMsg(message) }
     } catch (e) { setErrorMsg(e.message || 'Ошибка сети') }
     finally { setSavingMap(m => ({ ...m, [q.id]: false })) }
   }
