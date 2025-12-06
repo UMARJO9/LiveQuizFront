@@ -294,11 +294,25 @@ const TopicPage = () => {
                     onChangeText={(value) => setQuestions(prev => prev.map((it, i) => i === qi ? { ...it, text: value } : it))}
                     onChangeOptionText={(oi, value) => setQuestions(prev => prev.map((it, i) => { if (i !== qi) return it; const next = [...(it.options || [])]; next[oi] = { ...next[oi], text: value }; return { ...it, options: next } }))}
                     onToggleOption={(oi, checked) => setQuestions(prev => prev.map((it, i) => { if (i !== qi) return it; const next = [...(it.options || [])]; next[oi] = { ...next[oi], is_correct: checked }; return { ...it, options: next } }))}
-                    onSave={() => onSaveQuestion(q)}
-                    onDelete={() => onDeleteQuestion(q.id)}
-                  />
-                ))}
-              </div>
+                  onSave={() => onSaveQuestion(q)}
+                  onCancelChanges={() => {
+                    const base = baselineQuestions[q.id]
+                    if (!base) return
+                    setQuestionErrors(m => ({ ...m, [q.id]: {} }))
+                    setQuestions(prev => prev.map((it, i) => {
+                      if (i !== qi) return it
+                      const nextOptions = (it.options || []).map((opt, idx) => ({
+                        ...opt,
+                        text: base.options?.[idx]?.text ?? '',
+                        is_correct: !!(base.options?.[idx]?.is_correct)
+                      }))
+                      return { ...it, text: base.text ?? '', options: nextOptions }
+                    }))
+                  }}
+                  onDelete={() => onDeleteQuestion(q.id)}
+                />
+              ))}
+            </div>
             )}
 
             {createForms.map((cf, cfi) => (

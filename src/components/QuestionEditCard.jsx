@@ -1,12 +1,12 @@
 import React from 'react'
 
 const QuestionEditCard = ({
-  q, qi,
+  q,
   styles, dirty,
   saving, savedMsg, errors,
   deleting, deleteError,
   onChangeText, onChangeOptionText, onToggleOption,
-  onSave, onDelete,
+  onSave, onDelete, onCancelChanges,
 }) => {
   const { rowStyle, labelStyle, inputStyle, actionsStyle, successStyle, errorStyle } = styles
 
@@ -29,7 +29,7 @@ const QuestionEditCard = ({
         </label>
 
         <div style={{ display: 'grid', gap: 12 }}>
-          <div style={{ color: '#334155', fontWeight: 600 }}>Варианты ответа</div>
+          <div style={{ color: '#334155', fontWeight: 600 }}>Ответы на вопрос</div>
           {(q.options || []).map((opt, oi) => (
             <div key={opt.id ?? oi} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 10, alignItems: 'center' }}>
               <input
@@ -56,18 +56,31 @@ const QuestionEditCard = ({
 
         <div style={actionsStyle}>
           {dirty && (
-            <button
-              type="button"
-              disabled={saving}
-              onClick={onSave}
-              style={{
-                padding: '12px 16px', borderRadius: 10, border: 'none',
-                background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
-                color: '#fff', fontWeight: 700, cursor: 'pointer', boxShadow: '0 10px 24px rgba(37,99,235,0.25)'
-              }}
-            >
-              {saving ? 'Сохранение…' : 'Сохранить изменения'}
-            </button>
+            <>
+              <button
+                type="button"
+                disabled={saving}
+                onClick={onSave}
+                style={{
+                  padding: '12px 16px', borderRadius: 10, border: 'none',
+                  background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+                  color: '#fff', fontWeight: 700, cursor: 'pointer', boxShadow: '0 10px 24px rgba(37,99,235,0.25)'
+                }}
+              >
+                {saving ? 'Сохранение...' : 'Сохранить изменения'}
+              </button>
+              <button
+                type="button"
+                disabled={saving}
+                onClick={onCancelChanges}
+                style={{
+                  padding: '12px 16px', borderRadius: 10, border: '1px solid #e2e8f0',
+                  background: '#fff', color: '#0f172a', fontWeight: 600, cursor: 'pointer'
+                }}
+              >
+                Отменить изменения
+              </button>
+            </>
           )}
           <button
             type="button"
@@ -82,7 +95,7 @@ const QuestionEditCard = ({
               boxShadow: '0 10px 24px rgba(239,68,68,0.25)', transition: 'all 160ms ease-in-out'
             }}
           >
-            {deleting ? 'Удаление…' : 'Удалить вопрос'}
+            {deleting ? 'Удаление...' : 'Удалить вопрос'}
           </button>
         </div>
 
@@ -93,4 +106,3 @@ const QuestionEditCard = ({
 }
 
 export default QuestionEditCard
-
