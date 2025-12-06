@@ -153,6 +153,28 @@ const TopicPage = () => {
       }
     ]))
   }
+  const validateCreateForm = (cf) => {
+    const fields = {}
+    const text = (cf.text || '').trim()
+    if (!text) fields.text = 'Заполните текст вопроса'
+
+    const options = Array.isArray(cf.options) ? cf.options : []
+    options.forEach((opt, idx) => {
+      if (!(opt?.text || '').trim()) fields[`options.${idx}.text`] = 'Заполните текст варианта'
+    })
+
+    const correctCount = options.filter(o => o?.is_correct).length
+    const type = cf.questionType || questionType
+    if (correctCount === 0) {
+      fields.options = 'Выберите хотя бы один правильный ответ'
+    } else if (type === 'single' && correctCount > 1) {
+      fields.options = 'Для одиночного вопроса можно выбрать только один правильный ответ'
+    }
+
+    const valid = Object.keys(fields).length === 0
+    const error = fields.options || fields.text || ''
+    return { valid, fields, error }
+  }
   const onToggleCreateOption = (cfi, oi, checked, typeValue) => {
     setCreateForms(prev => prev.map((it, i) => {
       if (i !== cfi) return it
@@ -168,6 +190,11 @@ const TopicPage = () => {
     }))
   }
   const onCreateQuestion = async (cfi, cf) => {
+    const validation = validateCreateForm(cf)
+    if (!validation.valid) {
+      setCreateForms(prev => prev.map((it, i) => i === cfi ? { ...it, error: validation.error, fields: validation.fields, saving: false } : it))
+      return
+    }
     setCreateForms(prev => prev.map((it, i) => i === cfi ? { ...it, saving: true, error: '', fields: {} } : it))
     try {
       const payload = { text: (cf.text || '').trim(), options: (cf.options || []).map(o => ({ text: (o.text || '').trim(), is_correct: !!o.is_correct })) }
