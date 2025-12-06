@@ -1,7 +1,7 @@
 import React from 'react'
 
 const QuestionCreateForm = ({
-  cf, cfi, styles,
+  cf, styles,
   onChangeText, onChangeOptionText, onToggleOption,
   onCancel, onCreate,
 }) => {
