@@ -1,11 +1,17 @@
 import React from 'react'
 
 const QuestionCreateForm = ({
-  cf, styles,
-  onChangeText, onChangeOptionText, onToggleOption,
-  onCancel, onCreate,
+  cf,
+  styles,
+  questionType,
+  onChangeText,
+  onChangeOptionText,
+  onToggleOption,
+  onCancel,
+  onCreate,
 }) => {
   const { rowStyle, labelStyle, inputStyle, actionsStyle, errorStyle } = styles
+  const isSingle = questionType === 'single'
 
   return (
     <div style={{ marginTop: 12, padding: 16, borderRadius: 12, background: '#fff', boxShadow: '0 8px 24px rgba(15,23,42,0.08)' }}>
@@ -18,13 +24,16 @@ const QuestionCreateForm = ({
             value={cf.text}
             onChange={(e) => onChangeText(e.target.value)}
             style={{ ...inputStyle, borderColor: cf.fields?.text ? '#ef4444' : '#e2e8f0' }}
-            placeholder="Введите текст вопроса"
+            placeholder="Текст вопроса"
           />
           {cf.fields?.text && <span style={{ color: '#b91c1c', fontSize: 12 }}>{cf.fields.text}</span>}
         </label>
 
         <div style={{ display: 'grid', gap: 12 }}>
-          <div style={{ color: '#334155', fontWeight: 600 }}>Варианты ответа</div>
+          <div style={{ color: '#334155', fontWeight: 600 }}>Ответы на вопрос</div>
+          <div style={{ color: '#64748b', fontSize: 13 }}>
+            {isSingle ? 'Можно выбрать только один правильный ответ' : 'Можно выбрать несколько правильных ответов'}
+          </div>
           {(cf.options || []).map((opt, oi) => (
             <div key={oi} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 10, alignItems: 'center' }}>
               <input
@@ -72,7 +81,7 @@ const QuestionCreateForm = ({
               boxShadow: '0 10px 24px rgba(16,185,129,0.25)'
             }}
           >
-            {cf.saving ? 'Создание…' : 'Создать вопрос'}
+            {cf.saving ? 'Сохраняем' : 'Создать вопрос'}
           </button>
         </div>
       </div>
@@ -81,4 +90,3 @@ const QuestionCreateForm = ({
 }
 
 export default QuestionCreateForm
-

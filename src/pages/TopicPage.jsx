@@ -4,6 +4,7 @@ import { request } from '../api/request'
 import TopicHeader from '../components/TopicHeader'
 import QuestionEditCard from '../components/QuestionEditCard'
 import QuestionCreateForm from '../components/QuestionCreateForm'
+import ModalChooseQuestionType from '../components/ModalChooseQuestionType'
 
 const pageStyle = {
   minHeight: '100vh', display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
@@ -41,6 +42,8 @@ const TopicPage = () => {
   const [createForms, setCreateForms] = useState([])
   const [topicDeleting, setTopicDeleting] = useState(false)
   const [topicDeleteError, setTopicDeleteError] = useState('')
+  const [questionType, setQuestionType] = useState('single') // 'single' | 'multiple'
+  const [showTypeModal, setShowTypeModal] = useState(false)
 
   const normalizeQuestion = (q) => ({
     text: (q?.text || '').trim(),
@@ -135,7 +138,35 @@ const TopicPage = () => {
     finally { setSavingMap(m => ({ ...m, [q.id]: false })) }
   }
 
-  const addCreateForm = () => setCreateForms(prev => ([...prev, { key: Date.now() + Math.random(), text: '', options: Array.from({ length: 4 }).map(() => ({ text: '', is_correct: false })), error: '', fields: {}, saving: false }]))
+  const addCreateForm = (selectedType = 'single') => {
+    setQuestionType(selectedType)
+    setCreateForms(prev => ([
+      ...prev,
+      {
+        key: Date.now() + Math.random(),
+        text: '',
+        options: Array.from({ length: 4 }).map(() => ({ text: '', is_correct: false })),
+        error: '',
+        fields: {},
+        saving: false,
+        questionType: selectedType,
+      }
+    ]))
+  }
+  const onToggleCreateOption = (cfi, oi, checked, typeValue) => {
+    setCreateForms(prev => prev.map((it, i) => {
+      if (i !== cfi) return it
+      const currentType = typeValue || it.questionType || questionType
+      const nextOptions = (it.options || []).map((opt, idx) => {
+        if (currentType === 'single') {
+          if (idx === oi) return { ...opt, is_correct: checked }
+          return checked ? { ...opt, is_correct: false } : opt
+        }
+        return idx === oi ? { ...opt, is_correct: checked } : opt
+      })
+      return { ...it, options: nextOptions }
+    }))
+  }
   const onCreateQuestion = async (cfi, cf) => {
     setCreateForms(prev => prev.map((it, i) => i === cfi ? { ...it, saving: true, error: '', fields: {} } : it))
     try {
@@ -235,21 +266,28 @@ const TopicPage = () => {
                 key={cf.key ?? cfi}
                 cf={cf}
                 cfi={cfi}
+                questionType={cf.questionType || questionType}
                 styles={{ rowStyle, labelStyle, inputStyle, actionsStyle, errorStyle }}
                 onChangeText={(value) => setCreateForms(prev => prev.map((it, i) => i === cfi ? { ...it, text: value } : it))}
                 onChangeOptionText={(oi, value) => setCreateForms(prev => prev.map((it, i) => { if (i !== cfi) return it; const next = [...(it.options || [])]; next[oi] = { ...next[oi], text: value }; return { ...it, options: next } }))}
-                onToggleOption={(oi, checked) => setCreateForms(prev => prev.map((it, i) => { if (i !== cfi) return it; const next = [...(it.options || [])]; next[oi] = { ...next[oi], is_correct: checked }; return { ...it, options: next } }))}
+                onToggleOption={(oi, checked) => onToggleCreateOption(cfi, oi, checked, cf.questionType || questionType)}
                 onCancel={() => setCreateForms(prev => prev.filter((_, i) => i !== cfi))}
                 onCreate={() => onCreateQuestion(cfi, cf)}
               />
             ))}
 
-            <button type="button" onClick={addCreateForm} style={{ width: '100%', padding: '18px 16px', borderRadius: 12, border: '1px dashed #94a3b8', background: '#fff', color: '#2563eb', fontWeight: 800, fontSize: '1rem', cursor: 'pointer', marginTop: 16, marginBottom: 16 }}>
+            <button type="button" onClick={() => setShowTypeModal(true)} style={{ width: '100%', padding: '18px 16px', borderRadius: 12, border: '1px dashed #94a3b8', background: '#fff', color: '#2563eb', fontWeight: 800, fontSize: '1rem', cursor: 'pointer', marginTop: 16, marginBottom: 16 }}>
               + Добавить вопрос
             </button>
           </div>
         )}
       </form>
+      {showTypeModal && (
+        <ModalChooseQuestionType
+          onClose={() => setShowTypeModal(false)}
+          onSelect={(type) => { addCreateForm(type); setShowTypeModal(false) }}
+        />
+      )}
     </div>
   )
 }
