@@ -47,6 +47,7 @@ const TopicsPage = () => {
   const [error, setError] = useState('')
   const [showCreate, setShowCreate] = useState(false)
   const [startingTest, setStartingTest] = useState(null)
+  const [sessionError, setSessionError] = useState('')
 
   const didFetchRef = useRef(false)
 
@@ -98,16 +99,48 @@ const TopicsPage = () => {
 
   const startTest = (topicId) => {
     setStartingTest(topicId)
+    setSessionError('')
+
+    // Проверяем подключение сокета
+    if (!socket.connected) {
+      connectSocket()
+    }
 
     socket.emit('teacher:create_session', { topic_id: topicId })
 
     const handleSessionCreated = ({ session_id }) => {
+      clearTimeout(timeoutId)
       socket.off('teacher:session_created', handleSessionCreated)
+      socket.off('teacher:session_error', handleError)
       setStartingTest(null)
       navigate(`/teacher/session/${session_id}`)
     }
 
+    const handleError = ({ message }) => {
+      clearTimeout(timeoutId)
+      socket.off('teacher:session_created', handleSessionCreated)
+      socket.off('teacher:session_error', handleError)
+      setStartingTest(null)
+      setSessionError(message || 'Ошибка создания сессии')
+    }
+
+    // Таймаут 10 секунд
+    const timeoutId = setTimeout(() => {
+      socket.off('teacher:session_created', handleSessionCreated)
+      socket.off('teacher:session_error', handleError)
+      setStartingTest(null)
+      setSessionError('Сервер не отвечает. Попробуйте позже.')
+    }, 10000)
+
     socket.on('teacher:session_created', handleSessionCreated)
+    socket.on('teacher:session_error', handleError)
+  }
+
+  const cancelStartTest = () => {
+    socket.off('teacher:session_created')
+    socket.off('teacher:session_error')
+    setStartingTest(null)
+    setSessionError('')
   }
 
   return (
@@ -181,11 +214,92 @@ const TopicsPage = () => {
                 padding: '24px 32px',
                 borderRadius: 12,
                 textAlign: 'center',
+                minWidth: 280,
               }}
             >
-              <div style={{ fontSize: '1.1rem', color: '#334155' }}>
+              <div style={{ fontSize: '1.1rem', color: '#334155', marginBottom: 16 }}>
                 Создание сессии...
               </div>
+              <div style={{
+                width: 40,
+                height: 40,
+                border: '4px solid #e2e8f0',
+                borderTopColor: '#2563eb',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite',
+                margin: '0 auto 16px'
+              }} />
+              <button
+                type="button"
+                onClick={cancelStartTest}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: 8,
+                  border: 'none',
+                  background: '#e2e8f0',
+                  color: '#334155',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Отмена
+              </button>
+              <style>{`
+                @keyframes spin {
+                  to { transform: rotate(360deg); }
+                }
+              `}</style>
+            </div>
+          </div>
+        )}
+
+        {sessionError && (
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(0,0,0,0.4)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1000,
+            }}
+          >
+            <div
+              style={{
+                background: '#fff',
+                padding: '24px 32px',
+                borderRadius: 12,
+                textAlign: 'center',
+                minWidth: 280,
+              }}
+            >
+              <div style={{
+                fontSize: '1.1rem',
+                color: '#991b1b',
+                marginBottom: 16,
+                background: '#fef2f2',
+                padding: '12px 16px',
+                borderRadius: 8,
+                border: '1px solid #fecaca'
+              }}>
+                {sessionError}
+              </div>
+              <button
+                type="button"
+                onClick={() => setSessionError('')}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: 8,
+                  border: 'none',
+                  background: '#2563eb',
+                  color: '#fff',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Закрыть
+              </button>
             </div>
           </div>
         )}
