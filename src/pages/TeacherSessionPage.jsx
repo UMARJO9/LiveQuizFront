@@ -171,16 +171,31 @@ const TeacherSessionPage = () => {
                 background: '#f8fafc',
                 padding: '16px',
                 borderRadius: 10,
-                marginBottom: 20
+                marginBottom: 20,
+                overflow: 'hidden'
               }}>
-                <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: 4 }}>
+                <div style={{
+                  fontWeight: 700,
+                  color: '#0f172a',
+                  marginBottom: 4,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
+                }}>
                   {topic.title}
                 </div>
                 {topic.description && (
-                  <div style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: 8 }}>
-                    {topic.description.length > 100
-                      ? topic.description.slice(0, 100) + '...'
-                      : topic.description}
+                  <div style={{
+                    color: '#64748b',
+                    fontSize: '0.9rem',
+                    marginBottom: 8,
+                    overflow: 'hidden',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    wordBreak: 'break-word'
+                  }}>
+                    {topic.description}
                   </div>
                 )}
                 <div style={{ color: '#334155', fontSize: '0.85rem' }}>
