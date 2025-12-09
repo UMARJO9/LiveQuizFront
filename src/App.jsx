@@ -1,7 +1,8 @@
 import './App.css'
 import AuthPage from './pages/AuthPage'
-import MainPage from './pages/MainPage'
+import TopicsPage from './pages/TopicsPage'
 import TopicPage from './pages/TopicPage'
+import TeacherSessionPage from './pages/TeacherSessionPage'
 import { useState } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 
@@ -16,8 +17,9 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/" element={<MainPage />} />
+      <Route path="/" element={<TopicsPage />} />
       <Route path="/topic/:id" element={<TopicPage />} />
+      <Route path="/teacher/session/:sessionId" element={<TeacherSessionPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
