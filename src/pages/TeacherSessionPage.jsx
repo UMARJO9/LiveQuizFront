@@ -100,6 +100,10 @@ const TeacherSessionPage = () => {
   // Используем код из state или из хука
   const displayCode = initialCode || sessionCode || sessionId
 
+  // Если есть данные из навигации - не показываем загрузку
+  const hasInitialData = Boolean(initialCode)
+  const isLoading = loading && !hasInitialData
+
   const getInitials = (student) => {
     if (!student) return '?'
     const first = student.first_name?.[0] || ''
@@ -134,13 +138,13 @@ const TeacherSessionPage = () => {
           </button>
         </div>
 
-        {loading && (
+        {isLoading && (
           <div style={{ color: '#64748b', textAlign: 'center', padding: 20 }}>
             Загрузка сессии...
           </div>
         )}
 
-        {error && (
+        {error && !hasInitialData && (
           <div
             style={{
               background: '#fef2f2',
@@ -155,7 +159,7 @@ const TeacherSessionPage = () => {
           </div>
         )}
 
-        {!loading && !error && (
+        {!isLoading && (
           <>
             <div style={codeBlockStyle}>
               <div style={codeLabelStyle}>Код сессии:</div>
