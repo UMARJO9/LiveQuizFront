@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import useTeacherSession from '../hooks/useTeacherSession'
 
 const pageStyle = {
@@ -90,7 +90,15 @@ const backBtnStyle = {
 const TeacherSessionPage = () => {
   const { sessionId } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
+
+  // Получаем данные из state навигации
+  const { code: initialCode, topic, question_count } = location.state || {}
+
   const { students, sessionCode, loading, error } = useTeacherSession(sessionId)
+
+  // Используем код из state или из хука
+  const displayCode = initialCode || sessionCode || sessionId
 
   const getInitials = (student) => {
     if (!student) return '?'
@@ -151,8 +159,31 @@ const TeacherSessionPage = () => {
           <>
             <div style={codeBlockStyle}>
               <div style={codeLabelStyle}>Код сессии:</div>
-              <p style={codeTextStyle}>{sessionCode || sessionId}</p>
+              <p style={codeTextStyle}>{displayCode}</p>
             </div>
+
+            {topic && (
+              <div style={{
+                background: '#f8fafc',
+                padding: '16px',
+                borderRadius: 10,
+                marginBottom: 20
+              }}>
+                <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: 4 }}>
+                  {topic.title}
+                </div>
+                {topic.description && (
+                  <div style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: 8 }}>
+                    {topic.description.length > 100
+                      ? topic.description.slice(0, 100) + '...'
+                      : topic.description}
+                  </div>
+                )}
+                <div style={{ color: '#334155', fontSize: '0.85rem' }}>
+                  Вопросов: {question_count || 0} | Время на вопрос: {topic.time_per_question || '-'} сек
+                </div>
+              </div>
+            )}
 
             <div>
               <h2

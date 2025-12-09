@@ -108,12 +108,15 @@ const TopicsPage = () => {
 
     socket.emit('teacher:create_session', { topic_id: topicId })
 
-    const handleSessionCreated = ({ session_id }) => {
+    const handleSessionCreated = ({ session_id, code, topic, question_count }) => {
       clearTimeout(timeoutId)
       socket.off('teacher:session_created', handleSessionCreated)
       socket.off('teacher:session_error', handleError)
       setStartingTest(null)
-      navigate(`/teacher/session/${session_id}`)
+      // Передаём данные через state навигации
+      navigate(`/teacher/session/${session_id}`, {
+        state: { code, topic, question_count }
+      })
     }
 
     const handleError = ({ message }) => {
