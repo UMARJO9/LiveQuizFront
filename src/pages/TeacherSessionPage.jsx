@@ -95,7 +95,7 @@ const TeacherSessionPage = () => {
   // Получаем данные из state навигации
   const { code: initialCode, topic, question_count } = location.state || {}
 
-  const { students, sessionCode, loading, error } = useTeacherSession(sessionId)
+  const { students, sessionCode, loading, error, isStarted, isStarting, startSession } = useTeacherSession(sessionId)
 
   // Используем код из state или из хука
   const displayCode = initialCode || sessionCode || sessionId
@@ -201,7 +201,77 @@ const TeacherSessionPage = () => {
                 <div style={{ color: '#334155', fontSize: '0.85rem' }}>
                   Вопросов: {question_count || 0} | Время на вопрос: {topic.time_per_question || '-'} сек
                 </div>
+
+                {!isStarted && (
+                  <button
+                    type="button"
+                    onClick={startSession}
+                    disabled={isStarting || students.length === 0}
+                    style={{
+                      width: '100%',
+                      marginTop: 16,
+                      padding: '14px 20px',
+                      borderRadius: 10,
+                      border: 'none',
+                      background: isStarting || students.length === 0
+                        ? '#94a3b8'
+                        : 'linear-gradient(135deg, #10b981, #059669)',
+                      color: '#fff',
+                      fontWeight: 700,
+                      fontSize: '1rem',
+                      cursor: isStarting || students.length === 0 ? 'not-allowed' : 'pointer',
+                      transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                      boxShadow: isStarting || students.length === 0
+                        ? 'none'
+                        : '0 4px 12px rgba(16, 185, 129, 0.3)',
+                    }}
+                  >
+                    {isStarting ? 'Запуск...' : 'Начать тест'}
+                  </button>
+                )}
+
+                {isStarted && (
+                  <div style={{
+                    marginTop: 16,
+                    padding: '12px 16px',
+                    background: '#ecfdf5',
+                    border: '1px solid #a7f3d0',
+                    borderRadius: 10,
+                    color: '#065f46',
+                    fontWeight: 600,
+                    textAlign: 'center'
+                  }}>
+                    Тест начался!
+                  </div>
+                )}
               </div>
+            )}
+
+            {!topic && !isStarted && (
+              <button
+                type="button"
+                onClick={startSession}
+                disabled={isStarting || students.length === 0}
+                style={{
+                  width: '100%',
+                  marginBottom: 20,
+                  padding: '14px 20px',
+                  borderRadius: 10,
+                  border: 'none',
+                  background: isStarting || students.length === 0
+                    ? '#94a3b8'
+                    : 'linear-gradient(135deg, #10b981, #059669)',
+                  color: '#fff',
+                  fontWeight: 700,
+                  fontSize: '1rem',
+                  cursor: isStarting || students.length === 0 ? 'not-allowed' : 'pointer',
+                  boxShadow: isStarting || students.length === 0
+                    ? 'none'
+                    : '0 4px 12px rgba(16, 185, 129, 0.3)',
+                }}
+              >
+                {isStarting ? 'Запуск...' : 'Начать тест'}
+              </button>
             )}
 
             <div>
