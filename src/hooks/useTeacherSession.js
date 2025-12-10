@@ -93,6 +93,7 @@ const useTeacherSession = (sessionId) => {
 
     // Время вышло
     const handleTimerExpired = () => {
+      console.log('[Teacher] Timer expired')
       setTimerExpired(true)
       setTimeLeft(0)
     }
@@ -110,8 +111,13 @@ const useTeacherSession = (sessionId) => {
 
     // Рейтинг после вопроса
     const handleRanking = (data) => {
-      setRanking(data.players || [])
+      console.log('[Teacher] Ranking received:', data)
+      // data может быть массивом или объектом с players
+      const players = Array.isArray(data) ? data : (data.players || data.scoreboard || [])
+      console.log('[Teacher] Parsed players:', players)
+      setRanking(players)
       setShowResults(true)
+      setTimerExpired(false)
       setTimeLeft(0)
     }
 
@@ -133,8 +139,11 @@ const useTeacherSession = (sessionId) => {
     socket.on('session:answer_count', handleAnswerCount)
     socket.on('session:timer_expired', handleTimerExpired)
     socket.on('session:question_closed', handleQuestionClosed)
+    // Слушаем оба варианта названия событий
     socket.on('ranking', handleRanking)
+    socket.on('session:ranking', handleRanking)
     socket.on('quiz_finished', handleQuizFinished)
+    socket.on('session:quiz_finished', handleQuizFinished)
 
     socket.emit('teacher:join_session', { session_id: sessionId })
 
@@ -150,7 +159,9 @@ const useTeacherSession = (sessionId) => {
       socket.off('session:timer_expired', handleTimerExpired)
       socket.off('session:question_closed', handleQuestionClosed)
       socket.off('ranking', handleRanking)
+      socket.off('session:ranking', handleRanking)
       socket.off('quiz_finished', handleQuizFinished)
+      socket.off('session:quiz_finished', handleQuizFinished)
       socket.emit('teacher:leave_session', { session_id: sessionId })
 
       if (timerRef.current) {
