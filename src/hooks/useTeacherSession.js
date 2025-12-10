@@ -129,6 +129,11 @@ const useTeacherSession = (sessionId) => {
       setCurrentQuestion(null)
     }
 
+    // DEBUG: логируем ВСЕ входящие события
+    socket.onAny((eventName, ...args) => {
+      console.log('[Socket Event]', eventName, args)
+    })
+
     socket.on('session:state', handleSessionState)
     socket.on('session:error', handleError)
     socket.on('error', handleError)
@@ -148,6 +153,7 @@ const useTeacherSession = (sessionId) => {
     socket.emit('teacher:join_session', { session_id: sessionId })
 
     return () => {
+      socket.offAny() // Убираем debug listener
       socket.off('session:state', handleSessionState)
       socket.off('session:error', handleError)
       socket.off('error', handleError)
