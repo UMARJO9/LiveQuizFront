@@ -130,6 +130,15 @@ const winnerStyle = {
   marginBottom: 24,
 }
 
+const timerExpiredStyle = {
+  background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+  color: '#fff',
+  padding: '24px',
+  borderRadius: 14,
+  marginBottom: 20,
+  textAlign: 'center',
+}
+
 const TeacherQuizView = ({
   currentQuestion,
   answerCount,
@@ -137,6 +146,7 @@ const TeacherQuizView = ({
   showResults,
   ranking,
   isQuizFinished,
+  timerExpired,
   finalResults,
   isLoadingNext,
   nextQuestion,
@@ -260,15 +270,29 @@ const TeacherQuizView = ({
           ))}
         </div>
 
+        {/* Время вышло */}
+        {timerExpired && (
+          <div style={timerExpiredStyle}>
+            <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>
+              Время вышло!
+            </div>
+            <div style={{ fontSize: '0.9rem', opacity: 0.9, marginTop: 8 }}>
+              Ожидание результатов...
+            </div>
+          </div>
+        )}
+
         {/* Счётчик ответов */}
-        <div style={answerCountStyle}>
-          <div style={{ fontSize: '2rem', fontWeight: 800, color: '#2563eb' }}>
-            {answerCount.answered} / {answerCount.total}
+        {!timerExpired && (
+          <div style={answerCountStyle}>
+            <div style={{ fontSize: '2rem', fontWeight: 800, color: '#2563eb' }}>
+              {answerCount.answered} / {answerCount.total}
+            </div>
+            <div style={{ color: '#64748b', fontSize: '0.9rem' }}>
+              студентов ответили
+            </div>
           </div>
-          <div style={{ color: '#64748b', fontSize: '0.9rem' }}>
-            студентов ответили
-          </div>
-        </div>
+        )}
       </div>
     )
   }

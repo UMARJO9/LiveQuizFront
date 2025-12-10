@@ -117,6 +117,7 @@ const TeacherSessionPage = () => {
     isQuizFinished,
     finalResults,
     isLoadingNext,
+    timerExpired,
     nextQuestion,
   } = useTeacherSession(sessionId)
 
@@ -176,6 +177,7 @@ const TeacherSessionPage = () => {
             showResults={showResults}
             ranking={ranking}
             isQuizFinished={isQuizFinished}
+            timerExpired={timerExpired}
             finalResults={finalResults}
             isLoadingNext={isLoadingNext}
             nextQuestion={nextQuestion}

@@ -18,6 +18,7 @@ const useTeacherSession = (sessionId) => {
   const [isQuizFinished, setIsQuizFinished] = useState(false)
   const [finalResults, setFinalResults] = useState(null)
   const [isLoadingNext, setIsLoadingNext] = useState(false)
+  const [timerExpired, setTimerExpired] = useState(false)
 
   const timerRef = useRef(null)
 
@@ -85,8 +86,15 @@ const useTeacherSession = (sessionId) => {
       setCurrentQuestion(data)
       setTimeLeft(data.time || 30)
       setShowResults(false)
+      setTimerExpired(false)
       setAnswerCount({ answered: 0, total: students.length })
       setIsLoadingNext(false)
+    }
+
+    // Время вышло
+    const handleTimerExpired = () => {
+      setTimerExpired(true)
+      setTimeLeft(0)
     }
 
     // Счётчик ответов
@@ -123,6 +131,7 @@ const useTeacherSession = (sessionId) => {
     socket.on('session:started', handleSessionStarted)
     socket.on('session:question', handleQuestion)
     socket.on('session:answer_count', handleAnswerCount)
+    socket.on('session:timer_expired', handleTimerExpired)
     socket.on('session:question_closed', handleQuestionClosed)
     socket.on('ranking', handleRanking)
     socket.on('quiz_finished', handleQuizFinished)
@@ -138,6 +147,7 @@ const useTeacherSession = (sessionId) => {
       socket.off('session:started', handleSessionStarted)
       socket.off('session:question', handleQuestion)
       socket.off('session:answer_count', handleAnswerCount)
+      socket.off('session:timer_expired', handleTimerExpired)
       socket.off('session:question_closed', handleQuestionClosed)
       socket.off('ranking', handleRanking)
       socket.off('quiz_finished', handleQuizFinished)
@@ -188,6 +198,7 @@ const useTeacherSession = (sessionId) => {
     isQuizFinished,
     finalResults,
     isLoadingNext,
+    timerExpired,
     nextQuestion,
     finishSession,
   }
