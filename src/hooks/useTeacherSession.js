@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import socket, { connectSocket } from '../api/socket'
 
 const useTeacherSession = (sessionId) => {
@@ -8,6 +8,33 @@ const useTeacherSession = (sessionId) => {
   const [error, setError] = useState('')
   const [isStarted, setIsStarted] = useState(false)
   const [isStarting, setIsStarting] = useState(false)
+
+  // Состояние теста
+  const [currentQuestion, setCurrentQuestion] = useState(null)
+  const [answerCount, setAnswerCount] = useState({ answered: 0, total: 0 })
+  const [timeLeft, setTimeLeft] = useState(0)
+  const [showResults, setShowResults] = useState(false)
+  const [ranking, setRanking] = useState([])
+  const [isQuizFinished, setIsQuizFinished] = useState(false)
+  const [finalResults, setFinalResults] = useState(null)
+  const [isLoadingNext, setIsLoadingNext] = useState(false)
+
+  const timerRef = useRef(null)
+
+  // Таймер
+  useEffect(() => {
+    if (timeLeft > 0 && !showResults) {
+      timerRef.current = setTimeout(() => {
+        setTimeLeft((prev) => prev - 1)
+      }, 1000)
+    }
+
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current)
+      }
+    }
+  }, [timeLeft, showResults])
 
   useEffect(() => {
     if (!sessionId) return
@@ -26,6 +53,7 @@ const useTeacherSession = (sessionId) => {
       setError(message || 'Ошибка сессии')
       setLoading(false)
       setIsStarting(false)
+      setIsLoadingNext(false)
     }
 
     const handleStudentJoined = ({ student }) => {
@@ -52,12 +80,52 @@ const useTeacherSession = (sessionId) => {
       }
     }
 
+    // Получить вопрос
+    const handleQuestion = (data) => {
+      setCurrentQuestion(data)
+      setTimeLeft(data.time || 30)
+      setShowResults(false)
+      setAnswerCount({ answered: 0, total: students.length })
+      setIsLoadingNext(false)
+    }
+
+    // Счётчик ответов
+    const handleAnswerCount = ({ answered, total }) => {
+      setAnswerCount({ answered, total })
+    }
+
+    // Вопрос закрыт (время вышло)
+    const handleQuestionClosed = () => {
+      setTimeLeft(0)
+      setShowResults(true)
+    }
+
+    // Рейтинг после вопроса
+    const handleRanking = (data) => {
+      setRanking(data.players || [])
+      setShowResults(true)
+      setTimeLeft(0)
+    }
+
+    // Финал викторины
+    const handleQuizFinished = (data) => {
+      setIsQuizFinished(true)
+      setFinalResults(data)
+      setShowResults(true)
+      setCurrentQuestion(null)
+    }
+
     socket.on('session:state', handleSessionState)
     socket.on('session:error', handleError)
     socket.on('error', handleError)
     socket.on('session:student_joined', handleStudentJoined)
     socket.on('session:student_left', handleStudentLeft)
     socket.on('session:started', handleSessionStarted)
+    socket.on('session:question', handleQuestion)
+    socket.on('session:answer_count', handleAnswerCount)
+    socket.on('session:question_closed', handleQuestionClosed)
+    socket.on('ranking', handleRanking)
+    socket.on('quiz_finished', handleQuizFinished)
 
     socket.emit('teacher:join_session', { session_id: sessionId })
 
@@ -68,9 +136,18 @@ const useTeacherSession = (sessionId) => {
       socket.off('session:student_joined', handleStudentJoined)
       socket.off('session:student_left', handleStudentLeft)
       socket.off('session:started', handleSessionStarted)
+      socket.off('session:question', handleQuestion)
+      socket.off('session:answer_count', handleAnswerCount)
+      socket.off('session:question_closed', handleQuestionClosed)
+      socket.off('ranking', handleRanking)
+      socket.off('quiz_finished', handleQuizFinished)
       socket.emit('teacher:leave_session', { session_id: sessionId })
+
+      if (timerRef.current) {
+        clearTimeout(timerRef.current)
+      }
     }
-  }, [sessionId])
+  }, [sessionId, students.length])
 
   const startSession = useCallback(() => {
     if (!sessionId || isStarting || isStarted) return
@@ -80,6 +157,20 @@ const useTeacherSession = (sessionId) => {
     socket.emit('teacher:start_session', { session_id: sessionId })
   }, [sessionId, isStarting, isStarted])
 
+  const nextQuestion = useCallback(() => {
+    if (!sessionId || isLoadingNext) return
+
+    setIsLoadingNext(true)
+    setShowResults(false)
+    socket.emit('teacher:next_question', { session_id: sessionId })
+  }, [sessionId, isLoadingNext])
+
+  const finishSession = useCallback(() => {
+    if (!sessionId) return
+
+    socket.emit('teacher:finish_session', { session_id: sessionId })
+  }, [sessionId])
+
   return {
     students,
     sessionCode,
@@ -88,6 +179,17 @@ const useTeacherSession = (sessionId) => {
     isStarted,
     isStarting,
     startSession,
+    // Quiz state
+    currentQuestion,
+    answerCount,
+    timeLeft,
+    showResults,
+    ranking,
+    isQuizFinished,
+    finalResults,
+    isLoadingNext,
+    nextQuestion,
+    finishSession,
   }
 }
 

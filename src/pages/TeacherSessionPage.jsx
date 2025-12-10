@@ -1,5 +1,6 @@
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import useTeacherSession from '../hooks/useTeacherSession'
+import TeacherQuizView from '../components/TeacherQuizView'
 
 const pageStyle = {
   minHeight: '100vh',
@@ -16,6 +17,10 @@ const containerStyle = {
   borderRadius: 18,
   padding: '28px 32px',
   boxShadow: '0 8px 24px rgba(0, 0, 0, 0.08)',
+}
+
+const quizContainerStyle = {
+  width: 'min(700px, 96vw)',
 }
 
 const headerStyle = {
@@ -95,7 +100,25 @@ const TeacherSessionPage = () => {
   // Получаем данные из state навигации
   const { code: initialCode, topic, question_count } = location.state || {}
 
-  const { students, sessionCode, loading, error, isStarted, isStarting, startSession } = useTeacherSession(sessionId)
+  const {
+    students,
+    sessionCode,
+    loading,
+    error,
+    isStarted,
+    isStarting,
+    startSession,
+    // Quiz state
+    currentQuestion,
+    answerCount,
+    timeLeft,
+    showResults,
+    ranking,
+    isQuizFinished,
+    finalResults,
+    isLoadingNext,
+    nextQuestion,
+  } = useTeacherSession(sessionId)
 
   // Используем код из state или из хука
   const displayCode = initialCode || sessionCode || sessionId
@@ -120,6 +143,50 @@ const TeacherSessionPage = () => {
     return student.name || student.email || 'Студент'
   }
 
+  // Показываем интерфейс теста когда он начался
+  if (isStarted) {
+    return (
+      <div style={pageStyle}>
+        <div style={quizContainerStyle}>
+          {/* Мини-заголовок с кодом сессии */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: 16,
+            padding: '12px 20px',
+            background: '#fff',
+            borderRadius: 12,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span style={{ color: '#64748b', fontSize: '0.9rem' }}>Код:</span>
+              <span style={{ fontWeight: 700, color: '#2563eb', fontSize: '1.1rem' }}>{displayCode}</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ color: '#64748b', fontSize: '0.9rem' }}>Студентов:</span>
+              <span style={{ fontWeight: 700, color: '#0f172a' }}>{students.length}</span>
+            </div>
+          </div>
+
+          <TeacherQuizView
+            currentQuestion={currentQuestion}
+            answerCount={answerCount}
+            timeLeft={timeLeft}
+            showResults={showResults}
+            ranking={ranking}
+            isQuizFinished={isQuizFinished}
+            finalResults={finalResults}
+            isLoadingNext={isLoadingNext}
+            nextQuestion={nextQuestion}
+            onBackToHome={() => navigate('/')}
+          />
+        </div>
+      </div>
+    )
+  }
+
+  // Лобби до старта теста
   return (
     <div style={pageStyle}>
       <div style={containerStyle}>
@@ -202,52 +269,35 @@ const TeacherSessionPage = () => {
                   Вопросов: {question_count || 0} | Время на вопрос: {topic.time_per_question || '-'} сек
                 </div>
 
-                {!isStarted && (
-                  <button
-                    type="button"
-                    onClick={startSession}
-                    disabled={isStarting || students.length === 0}
-                    style={{
-                      width: '100%',
-                      marginTop: 16,
-                      padding: '14px 20px',
-                      borderRadius: 10,
-                      border: 'none',
-                      background: isStarting || students.length === 0
-                        ? '#94a3b8'
-                        : 'linear-gradient(135deg, #10b981, #059669)',
-                      color: '#fff',
-                      fontWeight: 700,
-                      fontSize: '1rem',
-                      cursor: isStarting || students.length === 0 ? 'not-allowed' : 'pointer',
-                      transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-                      boxShadow: isStarting || students.length === 0
-                        ? 'none'
-                        : '0 4px 12px rgba(16, 185, 129, 0.3)',
-                    }}
-                  >
-                    {isStarting ? 'Запуск...' : 'Начать тест'}
-                  </button>
-                )}
-
-                {isStarted && (
-                  <div style={{
+                <button
+                  type="button"
+                  onClick={startSession}
+                  disabled={isStarting || students.length === 0}
+                  style={{
+                    width: '100%',
                     marginTop: 16,
-                    padding: '12px 16px',
-                    background: '#ecfdf5',
-                    border: '1px solid #a7f3d0',
+                    padding: '14px 20px',
                     borderRadius: 10,
-                    color: '#065f46',
-                    fontWeight: 600,
-                    textAlign: 'center'
-                  }}>
-                    Тест начался!
-                  </div>
-                )}
+                    border: 'none',
+                    background: isStarting || students.length === 0
+                      ? '#94a3b8'
+                      : 'linear-gradient(135deg, #10b981, #059669)',
+                    color: '#fff',
+                    fontWeight: 700,
+                    fontSize: '1rem',
+                    cursor: isStarting || students.length === 0 ? 'not-allowed' : 'pointer',
+                    transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                    boxShadow: isStarting || students.length === 0
+                      ? 'none'
+                      : '0 4px 12px rgba(16, 185, 129, 0.3)',
+                  }}
+                >
+                  {isStarting ? 'Запуск...' : 'Начать тест'}
+                </button>
               </div>
             )}
 
-            {!topic && !isStarted && (
+            {!topic && (
               <button
                 type="button"
                 onClick={startSession}
@@ -301,7 +351,7 @@ const TeacherSessionPage = () => {
               ) : (
                 <ul style={studentListStyle}>
                   {students.map((student, index) => (
-                    <li key={student.id || index} style={studentItemStyle}>
+                    <li key={student.id || student.sid || index} style={studentItemStyle}>
                       <div style={avatarStyle}>{getInitials(student)}</div>
                       <div>
                         <div style={{ fontWeight: 600, color: '#0f172a' }}>
